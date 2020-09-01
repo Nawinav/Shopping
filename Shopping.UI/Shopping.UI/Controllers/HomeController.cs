@@ -1,4 +1,8 @@
-﻿using System;
+﻿using Shopping.Core;
+using Shopping.Core.Models;
+using Shopping.Core.ViewModels;
+using Shopping.InMemory;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -8,9 +12,46 @@ namespace Shopping.UI.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        IRepoistory<Product> context;
+        IRepoistory<ProductCategory> productCategories;
+
+        public HomeController(IRepoistory<Product> context, IRepoistory<ProductCategory> productCategories)
         {
-            return View();
+            this.context = context;
+            this.productCategories = productCategories;
+        }
+        public ActionResult Index(string Category=null)
+        {
+            List<Product> products;
+            List<ProductCategory> categories = productCategories.Collection().ToList();
+            if (Category == null)
+            {
+                products = context.Collection().ToList();
+            }
+            else
+            {
+                products = context.Collection().Where(x => x.Category == Category).ToList();
+            }
+
+            ProductListViewModel model = new ProductListViewModel();
+            model.Product = products;
+            model.ProductCategories = categories;
+
+           
+            return View(model);
+        }
+
+        public ActionResult Details(string Id)
+        {
+            Product product = context.Find(Id);
+            if (product == null)
+            {
+                return HttpNotFound();
+            }
+            else
+            {
+                return View(product);
+            }
         }
 
         public ActionResult About()
